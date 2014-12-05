@@ -42,9 +42,9 @@ and stops when one of the input iterators does.
 `zip_longest` is similar,
 but instead continues until both iterators are exhausted.
 Instead of a pair of values `(A, B)`,
-it yield pairs of optional values `(Option<A>, Option<B>)`,
-where `None` indicates that one of the input iterator was exhausted before the other.
-(`(None, None)` never occurs.)
+it yield an `EitherOrBoth` enum
+that contains `Both(A, B)`, `Left(A)`, or `Right(B)`
+depending on which of the input iterators if any is exhausted.
 
 ```rust
 extern crate "zip-longest" as zip_longest;
