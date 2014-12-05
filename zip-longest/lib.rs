@@ -1,4 +1,5 @@
 use std::cmp;
+use EitherOrBoth::{Left, Right, Both};
 
 pub trait ZipLongestIteratorExt<A>: Iterator<A> {
     /// Creates an iterator which iterates over both this and the specified
@@ -32,12 +33,14 @@ pub struct ZipLongest<T, U> {
     b: U
 }
 
-impl<A, B, T: Iterator<A>, U: Iterator<B>> Iterator<(Option<A>, Option<B>)> for ZipLongest<T, U> {
+impl<A, B, T: Iterator<A>, U: Iterator<B>> Iterator<EitherOrBoth<A, B>> for ZipLongest<T, U> {
     #[inline]
-    fn next(&mut self) -> Option<(Option<A>, Option<B>)> {
+    fn next(&mut self) -> Option<EitherOrBoth<A, B>> {
         match (self.a.next(), self.b.next()) {
             (None, None) => None,
-            pair_of_options => Some(pair_of_options),
+            (Some(a), None) => Some(Left(a)),
+            (None, Some(b)) => Some(Right(b)),
+            (Some(a), Some(b)) => Some(Both(a, b)),
         }
     }
 
@@ -57,44 +60,56 @@ impl<A, B, T: Iterator<A>, U: Iterator<B>> Iterator<(Option<A>, Option<B>)> for 
     }
 }
 
-impl<A, B, T: ExactSizeIterator<A>, U: ExactSizeIterator<B>> DoubleEndedIterator<(Option<A>, Option<B>)>
+impl<A, B, T: ExactSizeIterator<A>, U: ExactSizeIterator<B>> DoubleEndedIterator<EitherOrBoth<A, B>>
 for ZipLongest<T, U> {
     #[inline]
-    fn next_back(&mut self) -> Option<(Option<A>, Option<B>)> {
+    fn next_back(&mut self) -> Option<EitherOrBoth<A, B>> {
         use std::cmp::{Equal, Greater, Less};
         match self.a.len().cmp(&self.b.len()) {
             Equal => match (self.a.next_back(), self.b.next_back()) {
                 (None, None) => None,
-                pair_of_options => Some(pair_of_options),
+                (Some(a), Some(b)) => Some(Both(a, b)),
+                // XXX these should never happen:
+                (Some(a), None) => Some(Left(a)),
+                (None, Some(b)) => Some(Right(b)),
             },
-            Greater => self.a.next_back().map(|x| (Some(x), None)),
-            Less => self.b.next_back().map(|y| (None, Some(y))),
+            Greater => self.a.next_back().map(Left),
+            Less => self.b.next_back().map(Right),
         }
     }
 }
 
 impl<A, B, T: RandomAccessIterator<A>, U: RandomAccessIterator<B>>
-RandomAccessIterator<(Option<A>, Option<B>)> for ZipLongest<T, U> {
+RandomAccessIterator<EitherOrBoth<A, B>> for ZipLongest<T, U> {
     #[inline]
     fn indexable(&self) -> uint {
         cmp::max(self.a.indexable(), self.b.indexable())
     }
 
     #[inline]
-    fn idx(&mut self, index: uint) -> Option<(Option<A>, Option<B>)> {
+    fn idx(&mut self, index: uint) -> Option<EitherOrBoth<A, B>> {
         match (self.a.idx(index), self.b.idx(index)) {
             (None, None) => None,
-            pair_of_options => Some(pair_of_options),
+            (Some(a), None) => Some(Left(a)),
+            (None, Some(b)) => Some(Right(b)),
+            (Some(a), Some(b)) => Some(Both(a, b)),
         }
     }
 }
 
 impl<A, B, T: ExactSizeIterator<A>, U: ExactSizeIterator<B>>
-ExactSizeIterator<(Option<A>, Option<B>)> for ZipLongest<T, U> {}
+ExactSizeIterator<EitherOrBoth<A, B>> for ZipLongest<T, U> {}
 
 
 impl<A, I> ZipLongestIteratorExt<A> for I where I: Iterator<A> {}
 
+
+#[deriving(Clone, PartialEq, Eq, Show)]
+pub enum EitherOrBoth<A, B> {
+    Left(A),
+    Right(B),
+    Both(A, B),
+}
 
 #[test]
 fn test_iterator_size_hint() {
@@ -116,12 +131,12 @@ fn test_double_ended() {
     let a = xs.iter().map(|&x| x);
     let b = ys.iter().map(|&x| x);
     let mut it = a.zip_longest(b);
-    assert_eq!(it.next(), Some((Some(1), Some(1))));
-    assert_eq!(it.next(), Some((Some(2), Some(2))));
-    assert_eq!(it.next_back(), Some((Some(6), None)));
-    assert_eq!(it.next_back(), Some((Some(5), None)));
-    assert_eq!(it.next_back(), Some((Some(4), Some(7))));
-    assert_eq!(it.next(), Some((Some(3), Some(3))));
+    assert_eq!(it.next(), Some(Both(1, 1)));
+    assert_eq!(it.next(), Some(Both(2, 2)));
+    assert_eq!(it.next_back(), Some(Left(6)));
+    assert_eq!(it.next_back(), Some(Left(5)));
+    assert_eq!(it.next_back(), Some(Both(4, 7)));
+    assert_eq!(it.next(), Some(Both(3, 3)));
     assert_eq!(it.next(), None);
 }
 
