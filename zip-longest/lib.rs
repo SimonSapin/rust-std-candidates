@@ -69,7 +69,7 @@ for ZipLongest<T, U> {
             Equal => match (self.a.next_back(), self.b.next_back()) {
                 (None, None) => None,
                 (Some(a), Some(b)) => Some(Both(a, b)),
-                // XXX these should never happen:
+                // XXX these can only happen if .len() is inconsistent with .next_back()
                 (Some(a), None) => Some(Left(a)),
                 (None, Some(b)) => Some(Right(b)),
             },
@@ -104,12 +104,21 @@ ExactSizeIterator<EitherOrBoth<A, B>> for ZipLongest<T, U> {}
 impl<A, I> ZipLongestIteratorExt<A> for I where I: Iterator<A> {}
 
 
+/// A value yielded by `ZipLongest`.
+/// Contains one or two values,
+/// depending on which of the input iterators are exhausted.
 #[deriving(Clone, PartialEq, Eq, Show)]
 pub enum EitherOrBoth<A, B> {
-    Left(A),
-    Right(B),
+    /// Neither input iterator is exhausted yet, yielding two values.
     Both(A, B),
+    /// The parameter iterator of `.zip_longest()` is exhausted,
+    /// only yielding a value from the `self` iterator.
+    Left(A),
+    /// The `self` iterator of `.zip_longest()` is exhausted,
+    /// only yielding a value from the parameter iterator.
+    Right(B),
 }
+
 
 #[test]
 fn test_iterator_size_hint() {
