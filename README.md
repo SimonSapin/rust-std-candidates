@@ -8,6 +8,14 @@ Each crate is published separately on [crate.io](https://crates.io/)
 
 A macro to evaluate, as a boolean, whether an expression matches a pattern.
 
+To use it, add to your `Cargo.toml`:
+
+```toml
+[dependencies]
+matches = "0.1"
+```
+
+Example:
 
 ```rust
 #![feature(phase)]
@@ -45,6 +53,15 @@ Instead of a pair of values `(A, B)`,
 it yield an `EitherOrBoth` enum
 that contains `Both(A, B)`, `Left(A)`, or `Right(B)`
 depending on which of the input iterators if any is exhausted.
+
+To use it, add to your `Cargo.toml`:
+
+```toml
+[dependencies]
+zip_longest = "0.1"
+```
+
+Example:
 
 ```rust
 #![feature(phase)]
