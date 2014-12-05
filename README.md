@@ -47,11 +47,13 @@ that contains `Both(A, B)`, `Left(A)`, or `Right(B)`
 depending on which of the input iterators if any is exhausted.
 
 ```rust
+#![feature(phase)]
+#[phase(plugin)] extern crate matches;
 extern crate "zip-longest" as zip_longest;
-use zip_longest::ZipLongestIteratorExt;
+use zip_longest::{ZipLongestIteratorExt, EitherOrBoth};
 
 fn iter_eq<I, J, T>(i: I, j: J) -> bool
 where I: Iterator<T>, J: Iterator<T>, T: Eq {
-    i.zip_longest(j).all(|(a, b)| a == b)
+    i.zip_longest(j).all(|x| matches!(x, EitherOrBoth::Both(a, b) if a == b))
 }
 ```
