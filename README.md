@@ -103,10 +103,12 @@ Example:
 
 use std::os::getenv;
 
-fn defilibrate_flux_capacitor(gigowatts: float) {
+fn defibrillate_flux_capacitor(gigowatts: float) {
     // Temporarily added during debugging:
     show!(gigowatts, getenv("EPOCH"));
     // Equivalent to:
     println!("{} {}", gigowatts, getenv("EPOCH"));
+
+    // ... do complicated stuff here.
 }
 ```
