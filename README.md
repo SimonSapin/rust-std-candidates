@@ -90,6 +90,11 @@ for doing “print-style” debugging.
 The `show!` macro is a shortcut for calling `println!` with any any number of expressions,
 that are printed space-separated with the default `{}` / `Show` formatting.
 
+**Note:** Although debugging is the primary motivation for `show!`,
+there is nothing wrong with using it in “normal” code if it does what you need.
+
+To use it, add to your `Cargo.toml`:
+
 ```toml
 [dependencies]
 show = "0.1"
