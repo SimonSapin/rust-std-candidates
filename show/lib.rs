@@ -17,8 +17,8 @@ macro_rules! show {
 
 #[test]
 fn it_works() {
-    show!("foo",)
-    show!(Some(42i))
-    show!(4u, 'x', ("a", "b"))
+    show!("foo",);
+    show!(Some(42i));
+    show!(4u, 'x', ("a", "b"));
     //panic!()  // Uncomment to see test output.
 }

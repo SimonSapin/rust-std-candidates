@@ -11,7 +11,7 @@ macro_rules! matches(
             _ => false
         }
     );
-)
+);
 
 #[test]
 fn it_works() {
@@ -19,5 +19,5 @@ fn it_works() {
     assert!(matches!(foo, Some(bar) if
         matches!(bar.char_at(0), '+' | '-') &&
         matches!(bar.char_at(1), '0'...'9')
-    ))
+    ));
 }
