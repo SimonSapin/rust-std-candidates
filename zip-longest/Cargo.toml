@@ -5,7 +5,7 @@ version = "0.1.0"
 authors = ["Simon Sapin <simon.sapin@exyr.org>"]
 license = "MIT"
 repository = "https://github.com/SimonSapin/rust-std-candidates"
-description ="Take two iterators and yield pairs until both are exhausted."
+description = "Take two iterators and yield pairs until both are exhausted."
 
 [lib]
 name = "zip-longest"

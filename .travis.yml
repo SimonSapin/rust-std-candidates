@@ -1,2 +1,2 @@
 language: rust
-script: ./cargo-all.sh test
+script: make test

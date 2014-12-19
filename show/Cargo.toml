@@ -5,7 +5,7 @@ version = "0.1.0"
 authors = ["Simon Sapin <simon.sapin@exyr.org>"]
 license = "MIT"
 repository = "https://github.com/SimonSapin/rust-std-candidates"
-description ="""
+description = """
 A `show!` debugging macro to print expressions with the Show formatting trait, \
 without writing out `"{}", ` in the `println!` macro.
 """
