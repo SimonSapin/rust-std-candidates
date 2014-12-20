@@ -1,4 +1,5 @@
-use std::fmt;
+use std::fmt::{mod, FormatWriter};
+use std::str;
 
 #[deriving(Copy, Show)]
 pub struct Error;
@@ -12,9 +13,18 @@ pub trait TextWriter {
     fn write_char(&mut self, c: char) -> Result;
 
     fn write_fmt(&mut self, args: &fmt::Arguments) -> Result {
-        // FIXME (SimonSapin) Make this not allocate, after upgrading to a Rust
-        // that has https://github.com/rust-lang/rfcs/pull/526
-        self.write_str(format!("{}", args).as_slice())
+        struct Adaptor<'a, W: 'a> {
+            text_writer: &'a mut W,
+        }
+        impl<'a, W> FormatWriter for Adaptor<'a, W> where W: TextWriter {
+            fn write(&mut self, bytes: &[u8]) -> fmt::Result {
+                match str::from_utf8(bytes) {
+                    Some(s) => self.text_writer.write_str(s).map_err(|_| fmt::WriteError),
+                    None => Err(fmt::WriteError),
+                }
+            }
+        }
+        Adaptor { text_writer: self }.write_fmt(args).map_err(|_| Error)
     }
 }
 
