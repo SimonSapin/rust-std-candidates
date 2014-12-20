@@ -117,3 +117,70 @@ fn defibrillate_flux_capacitor(gigowatts: float) {
     // ... do complicated stuff here.
 }
 ```
+
+
+# The `TextWriter` trait
+
+[RFC #57](https://github.com/rust-lang/rfcs/pull/57).
+Also related: [RFC #526](https://github.com/rust-lang/rfcs/pull/526).
+
+The [`std::io`](http://doc.rust-lang.org/std/io/index.html) module provides
+`Reader` and `Writer` trait that represent generic byte streams,
+just like `Iterator<T>` represents arbitrary generic sequences.
+Standardizing of these traits allows producers, adaptors, and consumers of data
+to interoperate without writing a lot of glue code.
+
+Similarly, it would be useful to have "standard" traits to represent generic streams
+where the data is statically enforced to be valid Unicode
+(as it is in the `str`, `String`, and `char` types.)
+
+**Note:** [RFC #57](https://github.com/rust-lang/rfcs/pull/57)
+proposes two `TextReader` and `TextWriter` traits
+that are the Unicode equivalents of `std::io::Reader` and `std::io::Writer`, respectively.
+Only `TextWriter` is included here.
+The design of `TextReader` is not obvious
+− since Rust has no direct Unicode equivalent to writing to a pre-allocated `&mut [u8]` slice −
+and needs some more work.
+
+To use `TextWriter`, add to your `Cargo.toml`:
+
+```toml
+[dependencies]
+text_writer = "0.1"
+```
+
+Example:
+
+```rust
+extern crate text_writer;
+use text_writer::TextWriter;
+
+struct Ucs4 {
+    chars: Vec<char>,
+}
+
+impl TextWriter for Ucs4 {
+    #[inline]
+    fn write_str(&mut self, s: &str) -> Result {
+        self.chars.extend(s.chars());
+        Ok(())
+    }
+
+    #[inline]
+    fn write_char(&mut self, c: char) -> Result {
+        self.chars.push(c);
+        Ok(())
+    }
+}
+
+fn write_to<W: TextWriter>(writer: &mut W) -> Result {
+    try!(writer.write_str("fo"));
+    writer.write_char('ô')
+}
+
+fn main() {
+    let mut s = Ucs4 { chars: vec![] };
+    write_to(&mut s).unwrap();
+    assert_eq!(s.chars.as_slice(), ['f', 'o', 'ô'].as_slice());
+}
+```

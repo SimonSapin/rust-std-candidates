@@ -1,0 +1,13 @@
+[package]
+name = "text_writer"
+version = "0.1.0"
+authors = ["Simon Sapin <simon.sapin@exyr.org>"]
+license = "MIT"
+repository = "https://github.com/SimonSapin/rust-std-candidates"
+description = "An equivalent to `std::io::Writer` for Unicode text."
+
+
+[lib]
+name = "text_writer"
+path = "lib.rs"
+doctest = false
