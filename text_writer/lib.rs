@@ -19,8 +19,8 @@ pub trait TextWriter {
         impl<'a, W> FormatWriter for Adaptor<'a, W> where W: TextWriter {
             fn write(&mut self, bytes: &[u8]) -> fmt::Result {
                 match str::from_utf8(bytes) {
-                    Some(s) => self.text_writer.write_str(s).map_err(|_| fmt::WriteError),
-                    None => Err(fmt::WriteError),
+                    Some(s) => self.text_writer.write_str(s).map_err(|_| fmt::Error),
+                    None => Err(fmt::Error),
                 }
             }
         }
