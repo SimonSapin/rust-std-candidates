@@ -1,4 +1,5 @@
 use std::fmt::{mod, FormatWriter};
+use std::mem;
 use std::str;
 
 #[deriving(Copy, Show)]
@@ -10,7 +11,12 @@ pub type Result = ::std::result::Result<(), Error>;
 
 pub trait TextWriter {
     fn write_str(&mut self, s: &str) -> Result;
-    fn write_char(&mut self, c: char) -> Result;
+
+    fn write_char(&mut self, c: char) -> Result {
+        let mut utf_8 = [0u8, ..4];
+        let bytes_written = c.encode_utf8(&mut utf_8).unwrap_or(0);
+        self.write_str(unsafe { mem::transmute(utf_8[..bytes_written]) })
+    }
 
     fn write_fmt(&mut self, args: &fmt::Arguments) -> Result {
         struct Adaptor<'a, W: 'a> {
