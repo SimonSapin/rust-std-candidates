@@ -2,22 +2,35 @@ use std::fmt::{mod, FormatWriter};
 use std::mem;
 use std::str;
 
+/// Indicates some kind of error during writing, but does not provide further details.
 #[deriving(Copy, Show)]
 pub struct Error;
 
 
+/// The return type of `TextWriter::write_*` methods.
 pub type Result = ::std::result::Result<(), Error>;
 
 
+/// A Unicode write-only stream.
 pub trait TextWriter {
+    /// Write a string.
+    ///
+    /// A mininmal implementation can have only this method.
     fn write_str(&mut self, s: &str) -> Result;
 
+    /// Write a code point.
+    ///
+    /// A default implementation based on `write_str` is provided,
+    /// but it is recommended to override it if it can be done more efficiently.
     fn write_char(&mut self, c: char) -> Result {
         let mut utf_8 = [0u8, ..4];
         let bytes_written = c.encode_utf8(&mut utf_8).unwrap_or(0);
         self.write_str(unsafe { mem::transmute(utf_8[..bytes_written]) })
     }
 
+    /// Make `TextWriter` usable with the `write!` macro.
+    ///
+    /// This typically should not be overridden
     fn write_fmt(&mut self, args: &fmt::Arguments) -> Result {
         struct Adaptor<'a, W: 'a> {
             text_writer: &'a mut W,
