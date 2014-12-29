@@ -31,7 +31,7 @@ pub trait TextWriter {
     /// Make `TextWriter` usable with the `write!` macro.
     ///
     /// This typically should not be overridden
-    fn write_fmt(&mut self, args: &fmt::Arguments) -> Result {
+    fn write_fmt(&mut self, args: fmt::Arguments) -> Result {
         struct Adaptor<'a, W: 'a> {
             text_writer: &'a mut W,
         }
