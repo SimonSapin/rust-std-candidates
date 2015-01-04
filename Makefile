@@ -19,4 +19,4 @@ $(1)-$(2):
 
 endef
 
-$(foreach command,test build publish,$(eval $(call ALL,$(command))))
+$(foreach command,test build clean publish,$(eval $(call ALL,$(command))))

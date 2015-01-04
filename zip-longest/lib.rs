@@ -1,7 +1,8 @@
 use std::cmp;
-use EitherOrBoth::{Left, Right, Both};
+use std::iter::RandomAccessIterator;
 
-pub trait ZipLongestIteratorExt<A>: Iterator<A> {
+
+pub trait ZipLongestIteratorExt<A>: Iterator<A> + Sized {
     /// Creates an iterator which iterates over both this and the specified
     /// iterators simultaneously, yielding pairs of two optional elements.
     /// When both iterators return None, all further invocations of next() will
@@ -26,7 +27,7 @@ pub trait ZipLongestIteratorExt<A>: Iterator<A> {
 
 
 /// An iterator which iterates two other iterators simultaneously
-#[deriving(Clone)]
+#[derive(Clone)]
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
 pub struct ZipLongest<T, U> {
     a: T,
@@ -38,9 +39,9 @@ impl<A, B, T: Iterator<A>, U: Iterator<B>> Iterator<EitherOrBoth<A, B>> for ZipL
     fn next(&mut self) -> Option<EitherOrBoth<A, B>> {
         match (self.a.next(), self.b.next()) {
             (None, None) => None,
-            (Some(a), None) => Some(Left(a)),
-            (None, Some(b)) => Some(Right(b)),
-            (Some(a), Some(b)) => Some(Both(a, b)),
+            (Some(a), None) => Some(EitherOrBoth::Left(a)),
+            (None, Some(b)) => Some(EitherOrBoth::Right(b)),
+            (Some(a), Some(b)) => Some(EitherOrBoth::Both(a, b)),
         }
     }
 
@@ -68,13 +69,13 @@ for ZipLongest<T, U> {
         match self.a.len().cmp(&self.b.len()) {
             Equal => match (self.a.next_back(), self.b.next_back()) {
                 (None, None) => None,
-                (Some(a), Some(b)) => Some(Both(a, b)),
+                (Some(a), Some(b)) => Some(EitherOrBoth::Both(a, b)),
                 // XXX these can only happen if .len() is inconsistent with .next_back()
-                (Some(a), None) => Some(Left(a)),
-                (None, Some(b)) => Some(Right(b)),
+                (Some(a), None) => Some(EitherOrBoth::Left(a)),
+                (None, Some(b)) => Some(EitherOrBoth::Right(b)),
             },
-            Greater => self.a.next_back().map(Left),
-            Less => self.b.next_back().map(Right),
+            Greater => self.a.next_back().map(EitherOrBoth::Left),
+            Less => self.b.next_back().map(EitherOrBoth::Right),
         }
     }
 }
@@ -90,9 +91,9 @@ RandomAccessIterator<EitherOrBoth<A, B>> for ZipLongest<T, U> {
     fn idx(&mut self, index: uint) -> Option<EitherOrBoth<A, B>> {
         match (self.a.idx(index), self.b.idx(index)) {
             (None, None) => None,
-            (Some(a), None) => Some(Left(a)),
-            (None, Some(b)) => Some(Right(b)),
-            (Some(a), Some(b)) => Some(Both(a, b)),
+            (Some(a), None) => Some(EitherOrBoth::Left(a)),
+            (None, Some(b)) => Some(EitherOrBoth::Right(b)),
+            (Some(a), Some(b)) => Some(EitherOrBoth::Both(a, b)),
         }
     }
 }
@@ -107,7 +108,7 @@ impl<A, I> ZipLongestIteratorExt<A> for I where I: Iterator<A> {}
 /// A value yielded by `ZipLongest`.
 /// Contains one or two values,
 /// depending on which of the input iterators are exhausted.
-#[deriving(Clone, PartialEq, Eq, Show)]
+#[derive(Clone, PartialEq, Eq, Show)]
 pub enum EitherOrBoth<A, B> {
     /// Neither input iterator is exhausted yet, yielding two values.
     Both(A, B),
@@ -140,12 +141,12 @@ fn test_double_ended() {
     let a = xs.iter().map(|&x| x);
     let b = ys.iter().map(|&x| x);
     let mut it = a.zip_longest(b);
-    assert_eq!(it.next(), Some(Both(1, 1)));
-    assert_eq!(it.next(), Some(Both(2, 2)));
-    assert_eq!(it.next_back(), Some(Left(6)));
-    assert_eq!(it.next_back(), Some(Left(5)));
-    assert_eq!(it.next_back(), Some(Both(4, 7)));
-    assert_eq!(it.next(), Some(Both(3, 3)));
+    assert_eq!(it.next(), Some(EitherOrBoth::Both(1, 1)));
+    assert_eq!(it.next(), Some(EitherOrBoth::Both(2, 2)));
+    assert_eq!(it.next_back(), Some(EitherOrBoth::Left(6)));
+    assert_eq!(it.next_back(), Some(EitherOrBoth::Left(5)));
+    assert_eq!(it.next_back(), Some(EitherOrBoth::Both(4, 7)));
+    assert_eq!(it.next(), Some(EitherOrBoth::Both(3, 3)));
     assert_eq!(it.next(), None);
 }
 

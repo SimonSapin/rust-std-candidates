@@ -1,9 +1,8 @@
-use std::fmt::{mod, FormatWriter};
+use std::fmt::{self, Writer};
 use std::mem;
-use std::str;
 
 /// Indicates some kind of error during writing, but does not provide further details.
-#[deriving(Copy, Show)]
+#[derive(Copy, Show)]
 pub struct Error;
 
 
@@ -23,7 +22,7 @@ pub trait TextWriter {
     /// A default implementation based on `write_str` is provided,
     /// but it is recommended to override it if it can be done more efficiently.
     fn write_char(&mut self, c: char) -> Result {
-        let mut utf_8 = [0u8, ..4];
+        let mut utf_8 = [0u8; 4];
         let bytes_written = c.encode_utf8(&mut utf_8).unwrap_or(0);
         self.write_str(unsafe { mem::transmute(utf_8[..bytes_written]) })
     }
@@ -32,12 +31,11 @@ pub trait TextWriter {
     ///
     /// This typically should not be overridden
     fn write_fmt(&mut self, args: fmt::Arguments) -> Result {
-        struct Adaptor<'a, W: 'a> {
+        struct Adaptor<'a, Sized? W: 'a> {
             text_writer: &'a mut W,
         }
-        impl<'a, W> FormatWriter for Adaptor<'a, W> where W: TextWriter {
-            fn write(&mut self, bytes: &[u8]) -> fmt::Result {
-                let s = try!(str::from_utf8(bytes).map_err(|_| fmt::Error));
+        impl<'a, Sized? W> fmt::Writer for Adaptor<'a, W> where W: TextWriter {
+            fn write_str(&mut self, s: &str) -> fmt::Result {
                 self.text_writer.write_str(s).map_err(|_| fmt::Error)
             }
         }
@@ -64,7 +62,7 @@ impl TextWriter for String {
 impl<'a> TextWriter for fmt::Formatter<'a> {
     #[inline]
     fn write_str(&mut self, s: &str) -> Result {
-        self.write(s.as_bytes()).map_err(|_| Error)
+        self.write_str(s).map_err(|_| Error)
     }
 
     #[inline]
