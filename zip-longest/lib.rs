@@ -1,8 +1,10 @@
+#![feature(associated_types)]
+
 use std::cmp;
 use std::iter::RandomAccessIterator;
 
 
-pub trait ZipLongestIteratorExt<A>: Iterator<A> + Sized {
+pub trait ZipLongestIteratorExt: Iterator + Sized {
     /// Creates an iterator which iterates over both this and the specified
     /// iterators simultaneously, yielding pairs of two optional elements.
     /// When both iterators return None, all further invocations of next() will
@@ -20,7 +22,7 @@ pub trait ZipLongestIteratorExt<A>: Iterator<A> + Sized {
     /// assert!(it.next().is_none());
     /// ```
     #[inline]
-    fn zip_longest<B, U: Iterator<B>>(self, other: U) -> ZipLongest<Self, U> {
+    fn zip_longest<U: Iterator>(self, other: U) -> ZipLongest<Self, U> {
         ZipLongest{a: self, b: other}
     }
 }
@@ -34,7 +36,9 @@ pub struct ZipLongest<T, U> {
     b: U
 }
 
-impl<A, B, T: Iterator<A>, U: Iterator<B>> Iterator<EitherOrBoth<A, B>> for ZipLongest<T, U> {
+impl<A, B, T: Iterator<Item = A>, U: Iterator<Item = B>> Iterator for ZipLongest<T, U> {
+    type Item = EitherOrBoth<A, B>;
+
     #[inline]
     fn next(&mut self) -> Option<EitherOrBoth<A, B>> {
         match (self.a.next(), self.b.next()) {
@@ -61,10 +65,9 @@ impl<A, B, T: Iterator<A>, U: Iterator<B>> Iterator<EitherOrBoth<A, B>> for ZipL
     }
 }
 
-impl<A, B, T: ExactSizeIterator<A>, U: ExactSizeIterator<B>> DoubleEndedIterator<EitherOrBoth<A, B>>
-for ZipLongest<T, U> {
+impl<T: ExactSizeIterator, U: ExactSizeIterator> DoubleEndedIterator for ZipLongest<T, U> {
     #[inline]
-    fn next_back(&mut self) -> Option<EitherOrBoth<A, B>> {
+    fn next_back(&mut self) -> Option<<Self as Iterator>::Item> {
         use std::cmp::Ordering::{Equal, Greater, Less};
         match self.a.len().cmp(&self.b.len()) {
             Equal => match (self.a.next_back(), self.b.next_back()) {
@@ -80,15 +83,14 @@ for ZipLongest<T, U> {
     }
 }
 
-impl<A, B, T: RandomAccessIterator<A>, U: RandomAccessIterator<B>>
-RandomAccessIterator<EitherOrBoth<A, B>> for ZipLongest<T, U> {
+impl<T: RandomAccessIterator, U: RandomAccessIterator> RandomAccessIterator for ZipLongest<T, U> {
     #[inline]
     fn indexable(&self) -> uint {
         cmp::max(self.a.indexable(), self.b.indexable())
     }
 
     #[inline]
-    fn idx(&mut self, index: uint) -> Option<EitherOrBoth<A, B>> {
+    fn idx(&mut self, index: uint) -> Option<<Self as Iterator>::Item> {
         match (self.a.idx(index), self.b.idx(index)) {
             (None, None) => None,
             (Some(a), None) => Some(EitherOrBoth::Left(a)),
@@ -98,11 +100,10 @@ RandomAccessIterator<EitherOrBoth<A, B>> for ZipLongest<T, U> {
     }
 }
 
-impl<A, B, T: ExactSizeIterator<A>, U: ExactSizeIterator<B>>
-ExactSizeIterator<EitherOrBoth<A, B>> for ZipLongest<T, U> {}
+impl<T: ExactSizeIterator, U: ExactSizeIterator> ExactSizeIterator for ZipLongest<T, U> {}
 
 
-impl<A, I> ZipLongestIteratorExt<A> for I where I: Iterator<A> {}
+impl<I> ZipLongestIteratorExt for I where I: Iterator {}
 
 
 /// A value yielded by `ZipLongest`.
@@ -152,14 +153,14 @@ fn test_double_ended() {
 
 #[test]
 fn test_random_access() {
+    use std::slice::Iter;
+
     let xs = [1i, 2, 3, 4, 5];
     let ys = [7i, 9, 11];
     check_randacc_iter(xs.iter().zip_longest(ys.iter()),
                        cmp::max(xs.len(), ys.len()));
 
-    fn check_randacc_iter<A, T>(a: T, len: uint)
-    where A: PartialEq, T: Clone + RandomAccessIterator<A>
-    {
+    fn check_randacc_iter(a: ZipLongest<Iter<int>, Iter<int>>, len: uint) {
         let mut b = a.clone();
         assert_eq!(len, b.indexable());
         let mut n = 0u;
