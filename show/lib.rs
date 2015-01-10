@@ -1,12 +1,10 @@
-#![feature(macro_rules)]
-
 #[macro_export]
 macro_rules! show {
     ($expression: expr) => {
-        println!("{}", $expression);
+        println!("{:?}", $expression);
     };
     ($expression: expr, $($next: expr),+) => {{
-        print!("{} ", $expression);
+        print!("{:?} ", $expression);
         show!($($next),+)
     }};
     // Ignore a trailing comma:
@@ -18,7 +16,7 @@ macro_rules! show {
 #[test]
 fn it_works() {
     show!("foo",);
-    show!(Some(42i));
-    show!(4u, 'x', ("a", "b"));
+    show!(Some(42i32));
+    show!(4u8, 'x', ("a", "b"));
     //panic!()  // Uncomment to see test output.
 }

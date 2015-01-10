@@ -1,5 +1,3 @@
-#![feature(associated_types)]
-
 use std::cmp;
 use std::iter::RandomAccessIterator;
 
@@ -50,7 +48,7 @@ impl<A, B, T: Iterator<Item = A>, U: Iterator<Item = B>> Iterator for ZipLongest
     }
 
     #[inline]
-    fn size_hint(&self) -> (uint, Option<uint>) {
+    fn size_hint(&self) -> (usize, Option<usize>) {
         let (a_lower, a_upper) = self.a.size_hint();
         let (b_lower, b_upper) = self.b.size_hint();
 
@@ -65,7 +63,8 @@ impl<A, B, T: Iterator<Item = A>, U: Iterator<Item = B>> Iterator for ZipLongest
     }
 }
 
-impl<T: ExactSizeIterator, U: ExactSizeIterator> DoubleEndedIterator for ZipLongest<T, U> {
+impl<T, U> DoubleEndedIterator for ZipLongest<T, U>
+where T: DoubleEndedIterator + ExactSizeIterator, U: DoubleEndedIterator + ExactSizeIterator {
     #[inline]
     fn next_back(&mut self) -> Option<<Self as Iterator>::Item> {
         use std::cmp::Ordering::{Equal, Greater, Less};
@@ -85,12 +84,12 @@ impl<T: ExactSizeIterator, U: ExactSizeIterator> DoubleEndedIterator for ZipLong
 
 impl<T: RandomAccessIterator, U: RandomAccessIterator> RandomAccessIterator for ZipLongest<T, U> {
     #[inline]
-    fn indexable(&self) -> uint {
+    fn indexable(&self) -> usize {
         cmp::max(self.a.indexable(), self.b.indexable())
     }
 
     #[inline]
-    fn idx(&mut self, index: uint) -> Option<<Self as Iterator>::Item> {
+    fn idx(&mut self, index: usize) -> Option<<Self as Iterator>::Item> {
         match (self.a.idx(index), self.b.idx(index)) {
             (None, None) => None,
             (Some(a), None) => Some(EitherOrBoth::Left(a)),
@@ -127,9 +126,9 @@ fn test_iterator_size_hint() {
     use std::uint;
     use std::iter::count;
 
-    let c = count(0i, 1);
-    let v: &[_] = &[0i, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-    let v2 = &[10i, 11, 12];
+    let c = count(0i32, 1);
+    let v: &[_] = &[0i32, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+    let v2 = &[10i32, 11, 12];
     let vi = v.iter();
     assert_eq!(c.zip_longest(vi).size_hint(), (uint::MAX, None));
     assert_eq!(vi.zip_longest(v2.iter()).size_hint(), (10, Some(10)));
@@ -137,8 +136,8 @@ fn test_iterator_size_hint() {
 
 #[test]
 fn test_double_ended() {
-    let xs = [1i, 2, 3, 4, 5, 6];
-    let ys = [1i, 2, 3, 7];
+    let xs = [1i32, 2, 3, 4, 5, 6];
+    let ys = [1i32, 2, 3, 7];
     let a = xs.iter().map(|&x| x);
     let b = ys.iter().map(|&x| x);
     let mut it = a.zip_longest(b);
@@ -155,15 +154,15 @@ fn test_double_ended() {
 fn test_random_access() {
     use std::slice::Iter;
 
-    let xs = [1i, 2, 3, 4, 5];
-    let ys = [7i, 9, 11];
+    let xs = [1i32, 2, 3, 4, 5];
+    let ys = [7i32, 9, 11];
     check_randacc_iter(xs.iter().zip_longest(ys.iter()),
                        cmp::max(xs.len(), ys.len()));
 
-    fn check_randacc_iter(a: ZipLongest<Iter<int>, Iter<int>>, len: uint) {
+    fn check_randacc_iter(a: ZipLongest<Iter<i32>, Iter<i32>>, len: usize) {
         let mut b = a.clone();
         assert_eq!(len, b.indexable());
-        let mut n = 0u;
+        let mut n = 0us;
         for (i, elt) in a.enumerate() {
             assert!(Some(elt) == b.idx(i));
             n += 1;
