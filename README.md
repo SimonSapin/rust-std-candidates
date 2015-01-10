@@ -18,8 +18,7 @@ matches = "0.1"
 Example:
 
 ```rust
-#![feature(phase)]
-#[phase(plugin)] extern crate matches;
+#[macro_use] extern crate matches;
 
 fn is_slash(input: &str, pos: uint) -> bool {
     matches!(input.char_at(pos), '/' | '\\')
@@ -27,8 +26,7 @@ fn is_slash(input: &str, pos: uint) -> bool {
 ```
 
 ```rust
-#![feature(phase)]
-#[phase(plugin)] extern crate matches;
+#[macro_use] extern crate matches;
 extern crate serialize;
 use serialize::json::Json;
 
@@ -64,8 +62,7 @@ zip_longest = "0.1"
 Example:
 
 ```rust
-#![feature(phase)]
-#[phase(plugin)] extern crate matches;
+#[macro_use] extern crate matches;
 extern crate "zip-longest" as zip_longest;
 use zip_longest::{ZipLongestIteratorExt, EitherOrBoth};
 
@@ -103,8 +100,7 @@ show = "0.1"
 Example:
 
 ```rust
-#![feature(phase)]
-#[phase(plugin)] extern crate show;
+#[macro_use] extern crate show;
 
 use std::os::getenv;
 
