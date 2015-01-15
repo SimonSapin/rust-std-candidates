@@ -1,0 +1,16 @@
+[package]
+
+name = "triable"
+version = "0.1.0"
+authors = ["Simon Sapin <simon.sapin@exyr.org>"]
+license = "MIT"
+repository = "https://github.com/SimonSapin/rust-std-candidates"
+description = """
+Extends the `try!` macro to types other than `std::result::Result` by introducing a `Triable` trait.
+"""
+
+
+[lib]
+name = "triable"
+path = "lib.rs"
+doctest = false

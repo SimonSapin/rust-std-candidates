@@ -1,4 +1,4 @@
-CRATES = matches show zip-longest text_writer
+CRATES = matches show zip-longest text_writer triable
 
 .PHONY: default
 default: test
