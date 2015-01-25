@@ -1,0 +1,19 @@
+[package]
+
+name = "return_if_ok"
+version = "0.1.0"
+authors = ["Simon Sapin <simon.sapin@exyr.org>"]
+license = "MIT"
+repository = "https://github.com/SimonSapin/rust-std-candidates"
+description = """
+A macro that returns a `Result` as-is if it’s `Ok(_)`, \
+or unwraps it if it’s `Err(_)`. \
+This is the “opposite” of `try!`, in the same way that \
+`Result::or_else` is the opposite of `Result::and_then`.
+"""
+
+
+[lib]
+name = "return_if_ok"
+path = "lib.rs"
+doctest = false

@@ -180,3 +180,75 @@ fn main() {
     assert_eq!(s.chars.as_slice(), ['f', 'o', 'ô'].as_slice());
 }
 ```
+
+
+# The `return_if_ok!` macro
+
+[Discuss topic #1416](http://discuss.rust-lang.org/t/a-macro-that-is-to-result-or-else-what-try-is-to-result-and-then/1416).
+
+The `return_if_ok` macro takes a `Result`,
+then makes the function return early for `Ok(_)` values
+or unwraps `Err(_)` values:
+
+```rust
+macro_rules! return_if_ok {
+    ($expr:expr) => (match $expr {
+        Ok(val) => return Ok(val),
+        Err(err) => err
+    })
+}
+```
+
+Compare with the `try!` macro which takes a `Result`,
+then makes the funciton return early for `Err(_)` values
+or unwraps `Ok(_)` values:
+
+```rust
+macro_rules! try {
+    ($expr:expr) => (match $expr {
+        Ok(val) => val,
+        Err(err) => return Err(FromError::from_error(err))
+    })
+}
+```
+
+If we ignore [the `FromError` conversion](http://doc.rust-lang.org/std/error/#the-fromerror-trait),
+`return_if_ok!` and `try!` (which could be named `return_if_err!`)
+are [dual][https://en.wikipedia.org/wiki/Duality_%28mathematics%29]
+in the same way that [`Result::or_else`](http://doc.rust-lang.org/std/result/enum.Result.html#method.or_else)
+and  [`Result::and_then`](http://doc.rust-lang.org/std/result/enum.Result.html#method.and_then) are dual,
+and that [`||` and `&&` are dual](https://en.wikipedia.org/wiki/De_Morgan%27s_laws).
+
+To use it, add to your `Cargo.toml`:
+
+```toml
+[dependencies]
+return_if_ok = "0.1"
+```
+
+Example:
+
+I’ve been using `Result` heavily
+in [Servo’s CSS parsing rewrite](https://github.com/servo/servo/pull/4689).
+Grammar production rules map (roughly) to functions that return `Result`,
+concatenation maps to `try!` (or `Result::and_then`),
+and alternation maps to `Result::or_else` but would look nicer with `return_if_ok!` instead:
+
+```rust
+#[macro_use] extern crate return_if_ok;
+
+/// <'width'> = <length> | <percentage> | "auto"
+fn parse_width(input: &mut Parser) -> Result<LengthOrPercentageOrAuto, ()> {
+    return_if_ok!(parse_length(input).map(LengthOrPercentageOrAuto::Length));
+    return_if_ok!(parse_percentage(input).map(LengthOrPercentageOrAuto::Percentage));
+    parse_keyword(input, "auto").map(|()| LengthOrPercentageOrAuto::Auto)
+}
+
+/// <'border-spacing'> = <length> <length>?
+/// The second length defaults to the first
+fn parse_border_spacing(input: &mut Parser) -> Result<(Length, Length), ()> {
+    let first = try!(parse_length(input));
+    let second = parse_length(input).unwrap_or(first);
+    Ok((first, second))
+}
+```
