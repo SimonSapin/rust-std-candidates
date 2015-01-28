@@ -1,0 +1,17 @@
+[package]
+
+name = "mod_path"
+version = "0.1.0"
+authors = ["Simon Sapin <simon.sapin@exyr.org>"]
+license = "MIT"
+repository = "https://github.com/SimonSapin/rust-std-candidates"
+description = "A work-around for Rust bug #18810."
+
+build = "build.rs"
+
+
+[lib]
+name = "mod_path"
+path = "lib.rs"
+doctest = false
+plugin = true
