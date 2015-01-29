@@ -1,3 +1,5 @@
+#![feature(core)]
+
 use std::cmp;
 use std::iter::RandomAccessIterator;
 

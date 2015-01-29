@@ -1,8 +1,11 @@
+#![feature(core, unicode)]
+#![cfg_attr(test, feature(collections))]
+
 use std::fmt::{self, Writer};
 use std::mem;
 
 /// Indicates some kind of error during writing, but does not provide further details.
-#[derive(Copy, Show)]
+#[derive(Copy, Debug)]
 pub struct Error;
 
 
@@ -88,9 +91,9 @@ fn test_string() {
 }
 
 #[test]
-fn test_fmt_string() {
+fn test_fmt_display() {
     struct Foo;
-    impl fmt::String for Foo {
+    impl fmt::Display for Foo {
         fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
             write_to(formatter).unwrap();
             Ok(())

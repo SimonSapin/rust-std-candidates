@@ -1,6 +1,3 @@
-#![feature(macro_rules)]
-
-
 #[macro_export]
 macro_rules! try {
     ($expression: expr) => {
