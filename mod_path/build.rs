@@ -1,5 +1,7 @@
+#![feature(os, path, io)]
+
 use std::os;
-use std::io::File;
+use std::old_io::File;
 
 fn main() {
     let dst = Path::new(os::getenv("OUT_DIR").unwrap());

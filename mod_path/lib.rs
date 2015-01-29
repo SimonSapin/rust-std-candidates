@@ -1,4 +1,4 @@
-#![feature(plugin_registrar, quote)]
+#![feature(plugin_registrar, quote, rustc_private)]
 
 extern crate syntax;
 extern crate rustc;
@@ -11,7 +11,7 @@ use rustc::plugin::Registry;
 
 fn expand_mod_path<'a>(cx: &'a mut ExtCtxt, sp: Span, ident: Ident, tts: Vec<TokenTree>)
             -> Box<MacResult + 'a> {
-    let path = match get_single_str_from_tts(cx, sp, tts.as_slice(), "mod_path!") {
+    let path = match get_single_str_from_tts(cx, sp, &*tts, "mod_path!") {
         Some(string) => string,
         None => return DummyResult::expr(sp),
     };
