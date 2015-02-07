@@ -1,5 +1,4 @@
-#![feature(core, unicode)]
-#![cfg_attr(test, feature(collections))]
+#![feature(unicode)]
 
 use std::fmt::{self, Writer};
 use std::mem;
