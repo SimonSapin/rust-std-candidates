@@ -125,14 +125,14 @@ pub enum EitherOrBoth<A, B> {
 
 #[test]
 fn test_iterator_size_hint() {
-    use std::uint;
+    use std::usize;
     use std::iter::count;
 
     let c = count(0i32, 1);
     let v: &[_] = &[0i32, 1, 2, 3, 4, 5, 6, 7, 8, 9];
     let v2 = &[10i32, 11, 12];
     let vi = v.iter();
-    assert_eq!(c.zip_longest(vi.clone()).size_hint(), (uint::MAX, None));
+    assert_eq!(c.zip_longest(vi.clone()).size_hint(), (usize::MAX, None));
     assert_eq!(vi.zip_longest(v2.iter()).size_hint(), (10, Some(10)));
 }
 
