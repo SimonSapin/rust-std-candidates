@@ -1,6 +1,6 @@
 #![feature(unicode)]
 
-use std::fmt::{self, Writer};
+use std::fmt::{self, Write};
 use std::mem;
 
 /// Indicates some kind of error during writing, but does not provide further details.
@@ -36,7 +36,7 @@ pub trait TextWriter {
         struct Adaptor<'a, W: ?Sized + 'a> {
             text_writer: &'a mut W,
         }
-        impl<'a, W: ?Sized> fmt::Writer for Adaptor<'a, W> where W: TextWriter {
+        impl<'a, W: ?Sized> fmt::Write for Adaptor<'a, W> where W: TextWriter {
             fn write_str(&mut self, s: &str) -> fmt::Result {
                 self.text_writer.write_str(s).map_err(|_| fmt::Error)
             }

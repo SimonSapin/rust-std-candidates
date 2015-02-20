@@ -164,7 +164,7 @@ fn test_random_access() {
     fn check_randacc_iter(a: ZipLongest<Iter<i32>, Iter<i32>>, len: usize) {
         let mut b = a.clone();
         assert_eq!(len, b.indexable());
-        let mut n = 0us;
+        let mut n = 0;
         for (i, elt) in a.enumerate() {
             assert!(Some(elt) == b.idx(i));
             n += 1;
