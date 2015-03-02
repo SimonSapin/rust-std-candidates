@@ -1,4 +1,4 @@
-#![feature(env, old_path, old_io)]
+#![feature(old_path, old_io)]
 
 use std::env;
 use std::old_io::File;
