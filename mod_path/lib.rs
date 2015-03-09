@@ -28,5 +28,5 @@ fn expand_mod_path<'a>(cx: &'a mut ExtCtxt, sp: Span, ident: Ident, tts: Vec<Tok
 
 #[plugin_registrar]
 pub fn plugin_registrar(reg: &mut Registry) {
-    reg.register_syntax_extension(token::intern("mod_path"), IdentTT(Box::new(expand_mod_path), None));
+    reg.register_syntax_extension(token::intern("mod_path"), IdentTT(Box::new(expand_mod_path), None, false));
 }
