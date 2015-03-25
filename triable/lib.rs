@@ -69,6 +69,58 @@ impl<T1, T2> Triable<T1, Option<T2>> for Result<T1, ()> {
 }
 
 
+impl Triable<(), bool> for bool {
+    fn try(self) -> TriableResult<(), bool> {
+        if self {
+            TriableResult::Expression(())
+        } else {
+            TriableResult::EarlyReturn(false)
+        }
+    }
+}
+
+impl<T> Triable<T, bool> for Result<T, ()> {
+    fn try(self) -> TriableResult<T, bool> {
+        match self {
+            Ok(value) => TriableResult::Expression(value),
+            Err(()) => TriableResult::EarlyReturn(false)
+        }
+    }
+}
+
+impl<T> Triable<T, bool> for Option<T> {
+    fn try(self) -> TriableResult<T, bool> {
+        match self {
+            Some(value) => TriableResult::Expression(value),
+            None => TriableResult::EarlyReturn(false)
+        }
+    }
+}
+
+impl<T> Triable<(), Result<T, ()>> for bool {
+    fn try(self) -> TriableResult<(), Result<T, ()>> {
+        if self {
+            TriableResult::Expression(())
+        } else {
+            TriableResult::EarlyReturn(Err(()))
+        }
+    }
+}
+
+
+impl<T> Triable<(), Option<T>> for bool {
+    fn try(self) -> TriableResult<(), Option<T>> {
+        if self {
+            TriableResult::Expression(())
+        } else {
+            TriableResult::EarlyReturn(None)
+        }
+    }
+}
+
+
+
+
 #[test]
 fn result() {
     fn ok() -> Result<i32, ()> {
@@ -121,3 +173,73 @@ fn result_to_option() {
     assert_eq!(none(), None);
 }
 
+#[test]
+fn bool() {
+    fn true_() -> bool {
+        try!(true);
+        true
+    }
+    assert_eq!(true_(), true);
+
+    fn false_() -> bool {
+        try!(false);
+        true
+    }
+    assert_eq!(false_(), false);
+}
+
+#[test]
+fn option_to_bool() {
+    fn true_() -> bool {
+        try!(Some(5));
+        true
+    }
+    assert_eq!(true_(), true);
+
+    fn false_() -> bool {
+        try!(None);
+        true
+    }
+    assert_eq!(false_(), false);
+}
+
+#[test]
+fn result_to_bool() {
+    fn true_() -> bool {
+        try!(Ok(5));
+        true
+    }
+    assert_eq!(true_(), true);
+
+    fn false_() -> bool {
+        try!(Err(()));
+        true
+    }
+    assert_eq!(false_(), false);
+}
+
+#[test]
+fn bool_to_result() {
+    fn ok() -> Result<(), ()> {
+        Ok(try!(true))
+    }
+    assert_eq!(ok(), Ok(()));
+
+    fn err() -> Result<(), ()> {
+        Ok(try!(false))
+    }
+    assert_eq!(err(), Err(()));
+}
+
+#[test]
+fn bool_to_option() {
+    fn some() -> Option<()> {
+        Some(try!(true))
+    }
+    assert_eq!(some(), Some(()));
+
+    fn none() -> Option<()> {
+        Some(try!(false))
+    }
+    assert_eq!(none(), None);
+}
