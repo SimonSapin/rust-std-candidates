@@ -48,24 +48,28 @@ impl<T1, T2> Triable<T1, Option<T2>> for Option<T1> {
 
 
 #[test]
-fn it_works() {
-    fn result_ok() -> Result<i32, ()> {
+fn result() {
+    fn ok() -> Result<i32, ()> {
         Ok(try!(Ok(4)))
     }
-    assert_eq!(result_ok(), Ok(4));
+    assert_eq!(ok(), Ok(4));
 
-    fn result_err() -> Result<i32, ()> {
+    fn err() -> Result<i32, ()> {
         Ok(try!(Err(())))
     }
-    assert_eq!(result_err(), Err(()));
+    assert_eq!(err(), Err(()));
+}
 
-    fn option_some() -> Option<i32> {
+#[test]
+fn option() {
+    fn some() -> Option<i32> {
         Some(try!(Some(5)))
     }
-    assert_eq!(option_some(), Some(5));
+    assert_eq!(some(), Some(5));
 
-    fn option_none() -> Option<i32> {
+    fn none() -> Option<i32> {
         Some(try!(None))
     }
-    assert_eq!(option_none(), None);
+    assert_eq!(none(), None);
 }
+
