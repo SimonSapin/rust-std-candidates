@@ -63,7 +63,7 @@ Example:
 
 ```rust
 #[macro_use] extern crate matches;
-extern crate "zip-longest" as zip_longest;
+extern crate zip_longest;
 use zip_longest::{ZipLongestIteratorExt, EitherOrBoth};
 
 fn iter_eq<I, J, T>(i: I, j: J) -> bool
