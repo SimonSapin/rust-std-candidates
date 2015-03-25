@@ -1,19 +1,14 @@
 use std::error::FromError;
 
+
 #[macro_export]
 macro_rules! try {
     ($expression: expr) => {
-        match ::triable::Triable::try($expression) {
-            ::triable::TriableResult::Expression(value) => value,
-            ::triable::TriableResult::EarlyReturn(value) => return value,
+        match $crate::Triable::try($expression) {
+            $crate::TriableResult::Expression(value) => value,
+            $crate::TriableResult::EarlyReturn(value) => return value,
         }
     };
-}
-
-
-// Work around Servo’s Rust version not having $crate yet.
-mod triable {
-    pub use super::{Triable, TriableResult};
 }
 
 
