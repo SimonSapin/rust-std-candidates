@@ -1,4 +1,4 @@
-use std::error::FromError;
+use std::convert::From;
 
 
 #[macro_export]
@@ -24,11 +24,11 @@ pub trait Triable<Expr, Return> {
 
 
 impl<T1, T2, Err1, Err2> Triable<T1, Result<T2, Err2>> for Result<T1, Err1>
-where Err2: FromError<Err1> {
+where Err2: From<Err1> {
     fn try(self) -> TriableResult<T1, Result<T2, Err2>> {
         match self {
             Ok(value) => TriableResult::Expression(value),
-            Err(error) => TriableResult::EarlyReturn(Err(FromError::from_error(error)))
+            Err(error) => TriableResult::EarlyReturn(Err(From::from(error)))
         }
     }
 }

@@ -1,4 +1,5 @@
 #![feature(core)]
+#![cfg_attr(test, feature(step_by))]
 
 use std::cmp;
 use std::iter::RandomAccessIterator;
@@ -126,9 +127,8 @@ pub enum EitherOrBoth<A, B> {
 #[test]
 fn test_iterator_size_hint() {
     use std::usize;
-    use std::iter::count;
 
-    let c = count(0i32, 1);
+    let c = (0i32..).step_by(1);
     let v: &[_] = &[0i32, 1, 2, 3, 4, 5, 6, 7, 8, 9];
     let v2 = &[10i32, 11, 12];
     let vi = v.iter();
