@@ -1,10 +1,9 @@
-#![feature(unicode)]
-
 use std::fmt::{self, Write};
+use std::io::Write as IoWrite;
 use std::mem;
 
 /// Indicates some kind of error during writing, but does not provide further details.
-#[derive(Copy, Debug)]
+#[derive(Copy, Clone, Debug)]
 pub struct Error;
 
 
@@ -25,7 +24,11 @@ pub trait TextWriter {
     /// but it is recommended to override it if it can be done more efficiently.
     fn write_char(&mut self, c: char) -> Result {
         let mut utf_8 = [0u8; 4];
-        let bytes_written = c.encode_utf8(&mut utf_8).unwrap_or(0);
+        let bytes_written = {
+            let mut buffer = &mut utf_8[..];
+            write!(buffer, "{}", c).unwrap();
+            4 - buffer.len()
+        };
         self.write_str(unsafe { mem::transmute(&utf_8[..bytes_written]) })
     }
 
