@@ -1,6 +1,6 @@
 These are candidates for addition to
 the [Rust](http://rust-lang.org/) standard library.
-Each crate is published separately on [crate.io](https://crates.io/)
+Each crate is published separately on [crates.io](https://crates.io/)
 
 # The `matches!` macro
 
