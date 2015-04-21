@@ -1,10 +1,10 @@
 [package]
 name = "text_writer"
-version = "0.1.10"
+version = "0.1.11"
 authors = ["Simon Sapin <simon.sapin@exyr.org>"]
 license = "MIT"
 repository = "https://github.com/SimonSapin/rust-std-candidates"
-description = "An equivalent to `std::io::Writer` for Unicode text."
+description = "Depreacted. Use `std::fmt::Write` instead."
 
 
 [lib]
