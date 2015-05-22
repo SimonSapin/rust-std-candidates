@@ -7,6 +7,6 @@ fn main() {
     let dst = PathBuf::from(&env::var("OUT_DIR").unwrap());
     let mut f = File::create(&dst.join("hello.rs")).unwrap();
     f.write_all(b"
-        pub const SIX_BY_NINE: u32 = 0o42;
+        pub const ANSWER: u32 = 40 + 2;
     ").unwrap();
 }
