@@ -1,3 +1,7 @@
+sudo: false
 language: rust
-rust: nightly
-script: make test -k
+rust:
+  - nightly
+  - beta
+  - stable
+script: make test -k RUST_CHANNEL=$TRAVIS_RUST_VERSION

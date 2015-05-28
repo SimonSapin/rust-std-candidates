@@ -1,4 +1,9 @@
-CRATES = matches show zip_longest text_writer triable return_if_ok mod_path
+RUST_CHANNEL ?= nightly
+
+CRATES = matches show text_writer triable return_if_ok
+ifeq "$(RUST_CHANNEL)" "nightly"
+    CRATES += zip_longest mod_path
+endif
 
 .PHONY: default
 default: test
