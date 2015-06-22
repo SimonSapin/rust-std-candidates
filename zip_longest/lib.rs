@@ -1,8 +1,6 @@
-#![feature(core)]
 #![cfg_attr(test, feature(step_by))]
 
 use std::cmp;
-use std::iter::RandomAccessIterator;
 
 
 pub trait ZipLongestIteratorExt: Iterator + Sized {
@@ -85,23 +83,6 @@ where T: DoubleEndedIterator + ExactSizeIterator, U: DoubleEndedIterator + Exact
     }
 }
 
-impl<T: RandomAccessIterator, U: RandomAccessIterator> RandomAccessIterator for ZipLongest<T, U> {
-    #[inline]
-    fn indexable(&self) -> usize {
-        cmp::max(self.a.indexable(), self.b.indexable())
-    }
-
-    #[inline]
-    fn idx(&mut self, index: usize) -> Option<<Self as Iterator>::Item> {
-        match (self.a.idx(index), self.b.idx(index)) {
-            (None, None) => None,
-            (Some(a), None) => Some(EitherOrBoth::Left(a)),
-            (None, Some(b)) => Some(EitherOrBoth::Right(b)),
-            (Some(a), Some(b)) => Some(EitherOrBoth::Both(a, b)),
-        }
-    }
-}
-
 impl<T: ExactSizeIterator, U: ExactSizeIterator> ExactSizeIterator for ZipLongest<T, U> {}
 
 
@@ -150,31 +131,4 @@ fn test_double_ended() {
     assert_eq!(it.next_back(), Some(EitherOrBoth::Both(4, 7)));
     assert_eq!(it.next(), Some(EitherOrBoth::Both(3, 3)));
     assert_eq!(it.next(), None);
-}
-
-#[test]
-fn test_random_access() {
-    use std::slice::Iter;
-
-    let xs = [1i32, 2, 3, 4, 5];
-    let ys = [7i32, 9, 11];
-    check_randacc_iter(xs.iter().zip_longest(ys.iter()),
-                       cmp::max(xs.len(), ys.len()));
-
-    fn check_randacc_iter(a: ZipLongest<Iter<i32>, Iter<i32>>, len: usize) {
-        let mut b = a.clone();
-        assert_eq!(len, b.indexable());
-        let mut n = 0;
-        for (i, elt) in a.enumerate() {
-            assert!(Some(elt) == b.idx(i));
-            n += 1;
-        }
-        assert_eq!(n, len);
-        assert!(None == b.idx(n));
-        // call recursively to check after picking off an element
-        if len > 0 {
-            b.next();
-            check_randacc_iter(b, len-1);
-        }
-    }
 }
