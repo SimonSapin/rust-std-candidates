@@ -9,12 +9,19 @@ use std::str;
 ///
 /// Use e.g. `StringWrapper<[u8; 4]>` to have a string without heap memory allocation.
 #[derive(Clone)]
-pub struct StringWrapper<T> where T: AsRef<[u8]> + AsMut<[u8]> {
+pub struct StringWrapper<T> where T: Buffer {
     len: usize,
     buffer: T,
 }
 
-impl<T> StringWrapper<T> where T: AsRef<[u8]> + AsMut<[u8]> {
+/// Equivalent to `AsMut<[u8]> + AsRef<[u8]>` with the addition constraint that
+/// implementations must return the same slice from subsequent calls of `as_mut` and/or `as_ref`.
+pub unsafe trait Buffer {
+    fn as_ref(&self) -> &[u8];
+    fn as_mut(&mut self) -> &mut [u8];
+}
+
+impl<T> StringWrapper<T> where T: Buffer {
     pub fn new(buffer: T) -> Self {
         StringWrapper {
             len: 0,
@@ -41,7 +48,10 @@ impl<T> StringWrapper<T> where T: AsRef<[u8]> + AsMut<[u8]> {
         self.buffer.as_ref()
     }
 
-    /// Users must ensure that the string up to `self.len()` remains well-formed UTF-8.
+    /// Users must ensure that:
+    ///
+    /// * The buffer length does not shrink below `self.len()`
+    /// * The prefix up to `self.len()` remains well-formed UTF-8.
     pub unsafe fn buffer_mut(&mut self) -> &mut [u8] {
         self.buffer.as_mut()
     }
@@ -135,7 +145,7 @@ fn copy_memory(src: &[u8], dst: &mut [u8]) {
 }
 
 
-impl<T> ops::Deref for StringWrapper<T> where T: AsRef<[u8]> + AsMut<[u8]> {
+impl<T> ops::Deref for StringWrapper<T> where T: Buffer {
     type Target = str;
 
     fn deref(&self) -> &str {
@@ -145,7 +155,7 @@ impl<T> ops::Deref for StringWrapper<T> where T: AsRef<[u8]> + AsMut<[u8]> {
     }
 }
 
-impl<T> ops::DerefMut for StringWrapper<T> where T: AsRef<[u8]> + AsMut<[u8]> {
+impl<T> ops::DerefMut for StringWrapper<T> where T: Buffer {
     fn deref_mut(&mut self) -> &mut str {
         unsafe {
             transmute::<&mut [u8], &mut str>(&mut self.buffer.as_mut()[..self.len])
@@ -153,17 +163,79 @@ impl<T> ops::DerefMut for StringWrapper<T> where T: AsRef<[u8]> + AsMut<[u8]> {
     }
 }
 
-impl<T> fmt::Display for StringWrapper<T> where T: AsRef<[u8]> + AsMut<[u8]> {
+impl<T> fmt::Display for StringWrapper<T> where T: Buffer {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fmt::Display::fmt(&**self, f)
     }
 }
 
-impl<T> fmt::Debug for StringWrapper<T> where T: AsRef<[u8]> + AsMut<[u8]> {
+impl<T> fmt::Debug for StringWrapper<T> where T: Buffer {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fmt::Debug::fmt(&**self, f)
     }
 }
+
+unsafe impl<'a, T: ?Sized + Buffer> Buffer for &'a mut T {
+    fn as_ref(&self) -> &[u8] { (**self).as_ref() }
+    fn as_mut(&mut self) -> &mut [u8] { (**self).as_mut() }
+}
+
+unsafe impl<'a, T: ?Sized + Buffer> Buffer for Box<T> {
+    fn as_ref(&self) -> &[u8] { (**self).as_ref() }
+    fn as_mut(&mut self) -> &mut [u8] { (**self).as_mut() }
+}
+
+unsafe impl Buffer for Vec<u8> {
+    fn as_ref(&self) -> &[u8] { self }
+    fn as_mut(&mut self) -> &mut [u8] { self }
+}
+
+unsafe impl Buffer for [u8] {
+    fn as_ref(&self) -> &[u8] { self }
+    fn as_mut(&mut self) -> &mut [u8] { self }
+}
+
+macro_rules! array_impl {
+    ($($N: expr)+) => {
+        $(
+            unsafe impl Buffer for [u8; $N] {
+                fn as_ref(&self) -> &[u8] { self }
+                fn as_mut(&mut self) -> &mut [u8] { self }
+            }
+        )+
+    }
+}
+
+array_impl! {
+     0  1  2  3  4  5  6  7  8  9
+    10 11 12 13 14 15 16 17 18 19
+    20 21 22 23 24 25 26 27 28 29
+    30 31 32
+    64 128 256 512 1024
+    2 * 1024
+    4 * 1024
+    8 * 1024
+    16 * 1024
+    32 * 1024
+    64 * 1024
+    128 * 1024
+    256 * 1024
+    512 * 1024
+    1024 * 1024
+    2 * 1024 * 1024
+    4 * 1024 * 1024
+    8 * 1024 * 1024
+    16 * 1024 * 1024
+    32 * 1024 * 1024
+    64 * 1024 * 1024
+    128 * 1024 * 1024
+    256 * 1024 * 1024
+    512 * 1024 * 1024
+    1024 * 1024 * 1024
+    100 1_000 10_000 100_000 1_000_000
+    10_000_000 100_000_000 1_000_000_000
+}
+
 
 #[test]
 fn it_works() {
