@@ -1,0 +1,11 @@
+[package]
+name = "string-wrapper"
+version = "0.1.0"
+authors = ["Simon Sapin <simon.sapin@exyr.org>"]
+license = "MIT"
+repository = "https://github.com/SimonSapin/rust-std-candidates"
+description = "A String with generic bytes storage"
+
+[lib]
+path = "lib.rs"
+doctest = false
