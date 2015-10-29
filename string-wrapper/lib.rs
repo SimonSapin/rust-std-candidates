@@ -8,7 +8,7 @@ use std::str;
 /// Like `String`, but with a fixed capacity and a generic backing bytes storage.
 ///
 /// Use e.g. `StringWrapper<[u8; 4]>` to have a string without heap memory allocation.
-#[derive(Clone)]
+#[derive(Clone, Copy, Default)]
 pub struct StringWrapper<T> where T: Buffer {
     len: usize,
     buffer: T,
@@ -58,6 +58,10 @@ impl<T> StringWrapper<T> where T: Buffer {
 
     pub fn len(&self) -> usize {
         self.len
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len == 0
     }
 
     /// Users must ensure that the string remains well-formed UTF-8.
