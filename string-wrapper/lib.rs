@@ -22,6 +22,7 @@ pub unsafe trait Buffer {
 }
 
 impl<T> StringWrapper<T> where T: Buffer {
+    /// Create an empty string from its backing storage.
     pub fn new(buffer: T) -> Self {
         StringWrapper {
             len: 0,
@@ -29,6 +30,8 @@ impl<T> StringWrapper<T> where T: Buffer {
         }
     }
 
+    /// Unsafely create a string from its components.
+    ///
     /// Users must ensure that:
     ///
     /// * The buffer length is at least `len`
@@ -40,46 +43,58 @@ impl<T> StringWrapper<T> where T: Buffer {
         }
     }
 
+    /// Consume the string and return the backing storage.
     pub fn into_buffer(self) -> T {
         self.buffer
     }
 
+    /// View the backing storage as a bytes slice.
     pub fn buffer(&self) -> &[u8] {
         self.buffer.as_ref()
     }
 
-    /// Users must ensure that:
+
+    /// View the backing storage as a bytes slice.
     ///
-    /// * The buffer length does not shrink below `self.len()`
-    /// * The prefix up to `self.len()` remains well-formed UTF-8.
+    /// Users must ensure that the prefix bytes up to `self.len()` remains well-formed UTF-8.
     pub unsafe fn buffer_mut(&mut self) -> &mut [u8] {
         self.buffer.as_mut()
     }
 
+    /// Return the number of bytes in the string.
     pub fn len(&self) -> usize {
         self.len
     }
 
+    /// Return whether the string contains no bytes.
     pub fn is_empty(&self) -> bool {
         self.len == 0
     }
 
+    /// Unsafely change the length in bytes of the string.
+    ///
     /// Users must ensure that the string remains well-formed UTF-8.
     pub unsafe fn set_len(&mut self, new_len: usize) {
         self.len = new_len
     }
 
+    /// Shortens a string to the specified length.
+    ///
+    /// Panics if `new_len` > current length, or if `new_len` is not a character boundary.
     pub fn truncate(&mut self, new_len: usize) {
+        assert!(new_len <= self.len);
         if new_len < self.len {
             assert!(starts_well_formed_utf8_sequence(self.buffer.as_ref()[new_len]));
-            self.len = new_len;
         }
+        self.len = new_len;
     }
 
+    /// Return the maximum number of bytes the string can hold.
     pub fn capacity(&self) -> usize {
         self.buffer.as_ref().len()
     }
 
+    /// Return by how many bytes the string can grow.
     pub fn extra_capacity(&self) -> usize {
         self.capacity() - self.len
     }
@@ -89,6 +104,9 @@ impl<T> StringWrapper<T> where T: Buffer {
         &mut self.buffer.as_mut()[self.len..]
     }
 
+    /// Append a code point to the string if the extra capacity is sufficient.
+    ///
+    /// Return `Ok` with the code point appended, or `Err` with the string unchanged.
     pub fn push(&mut self, c: char) -> Result<(), ()> {
         let new_len = self.len + c.len_utf8();
         if new_len <= self.capacity() {
@@ -101,16 +119,19 @@ impl<T> StringWrapper<T> where T: Buffer {
         }
     }
 
-    /// Panics if `s.len() <= self.extra_capacity()`
+    /// Append a string slice to the string.
+    ///
+    /// Panics if the extra capacity is not sufficient.
     pub fn push_str(&mut self, s: &str) {
         copy_memory(s.as_bytes(), self.extra_bytes_mut());
         self.len += s.len();
     }
 
-    /// Append as much as possible of the given string
-    /// (within 3 bytes of `self.extra_capacity()`)
-    /// Return `Ok(())` if the capacity was sufficient,
-    /// or `Err(number_of_bytes_written)`.
+    /// Append as much as possible of a string slice to the string.
+    ///
+    /// Return `Ok(())` if the extra capacity was sufficient,
+    /// or `Err(n)` where `n` is the number of bytes pushed.
+    /// `n` is within 3 bytes of the extra capacity.
     pub fn push_partial_str(&mut self, s: &str) -> Result<(), usize> {
         let mut i = self.extra_capacity();
         let (s, result) = if i < s.len() {
