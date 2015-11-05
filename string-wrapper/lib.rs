@@ -305,12 +305,6 @@ fn it_works() {
     assert_eq!(s.capacity(), 10);
     assert_eq!(s.extra_capacity(), 4);
 
-    s.truncate(8);
-    assert_eq!(&*s, "aé~~~");
-    assert_eq!(s.len(), 6);
-    assert_eq!(s.capacity(), 10);
-    assert_eq!(s.extra_capacity(), 4);
-
     assert_eq!(s.push_partial_str("_🌠"), Err(1));
     assert_eq!(&*s, "aé~~~_");
     assert_eq!(s.len(), 7);

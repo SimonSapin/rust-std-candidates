@@ -1,6 +1,6 @@
 [package]
 name = "string-wrapper"
-version = "0.1.4"
+version = "0.1.5"
 authors = ["Simon Sapin <simon.sapin@exyr.org>"]
 license = "MIT / Apache-2.0"
 repository = "https://github.com/SimonSapin/rust-std-candidates"
