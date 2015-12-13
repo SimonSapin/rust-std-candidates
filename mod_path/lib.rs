@@ -2,13 +2,14 @@
 
 extern crate syntax;
 extern crate rustc;
+extern crate rustc_plugin;
 
 use syntax::codemap::Span;
 use syntax::parse::token;
 use syntax::ast::{TokenTree, Ident};
 use syntax::ext::base::{ExtCtxt, MacResult, DummyResult, MacEager, IdentTT, get_single_str_from_tts};
 use syntax::util::small_vector::SmallVector;
-use rustc::plugin::Registry;
+use rustc_plugin::Registry;
 
 fn expand_mod_path<'a>(cx: &'a mut ExtCtxt, sp: Span, ident: Ident, tts: Vec<TokenTree>)
             -> Box<MacResult + 'a> {
