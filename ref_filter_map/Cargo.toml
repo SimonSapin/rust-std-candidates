@@ -1,6 +1,6 @@
 [package]
 name = "ref_filter_map"
-version = "1.0.0"
+version = "1.0.1"
 authors = ["Simon Sapin <simon.sapin@exyr.org>"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/SimonSapin/rust-std-candidates"

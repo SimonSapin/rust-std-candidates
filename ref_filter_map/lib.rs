@@ -26,6 +26,12 @@
 //!
 //! Internally they use a raw pointer and some `unsafe` code,
 //! but the API they provide is believed to be safe.
+//!
+//! This was once part of `std::cell` but has been deprecated there since it makes `Option`
+//! too much of a special case.
+//!
+//! https://github.com/rust-lang/rust/pull/25747
+//! https://github.com/rust-lang/rust/issues/27746
 
 use std::cell::{Ref, RefMut};
 
@@ -40,12 +46,12 @@ use std::cell::{Ref, RefMut};
 /// # Example
 ///
 /// ```
-/// # #![feature(cell_extras)]
 /// use std::cell::{RefCell, Ref};
+/// use ref_filter_map::ref_filter_map;
 ///
 /// let c = RefCell::new(Ok(5));
 /// let b1: Ref<Result<u32, ()>> = c.borrow();
-/// let b2: Ref<u32> = Ref::filter_map(b1, |o| o.as_ref().ok()).unwrap();
+/// let b2: Ref<u32> = ref_filter_map(b1, |o| o.as_ref().ok()).unwrap();
 /// assert_eq!(*b2, 5)
 /// ```
 pub fn ref_filter_map<
@@ -69,13 +75,13 @@ pub fn ref_filter_map<
 /// # Example
 ///
 /// ```
-/// # #![feature(cell_extras)]
 /// use std::cell::{RefCell, RefMut};
+/// use ref_filter_map::ref_mut_filter_map;
 ///
 /// let c = RefCell::new(Ok(5));
 /// {
 ///     let b1: RefMut<Result<u32, ()>> = c.borrow_mut();
-///     let mut b2: RefMut<u32> = RefMut::filter_map(b1, |o| o.as_mut().ok()).unwrap();
+///     let mut b2: RefMut<u32> = ref_mut_filter_map(b1, |o| o.as_mut().ok()).unwrap();
 ///     assert_eq!(*b2, 5);
 ///     *b2 = 42;
 /// }
