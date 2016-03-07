@@ -1,6 +1,6 @@
 RUST_CHANNEL ?= nightly
 
-CRATES = matches show text_writer triable return_if_ok string-wrapper
+CRATES = matches show text_writer triable return_if_ok string-wrapper ref_filter_map
 ifeq "$(RUST_CHANNEL)" "nightly"
     CRATES += zip_longest
 endif
