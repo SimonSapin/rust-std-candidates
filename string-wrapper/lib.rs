@@ -321,7 +321,7 @@ fn it_works() {
     let buffer: [u8; 10] = s.clone().into_buffer();
     assert_eq!(&buffer, b"a\xC3\xA9~~~_ell");
     assert_eq!(format!("{}", s), "aé~~~_");
-    assert_eq!(format!("{:?}", s), r#""a\u{e9}~~~_""#);
+    assert_eq!(format!("{:?}", s), r#""aé~~~_""#);
 
     assert_eq!(s.push_partial_str("ô!?"), Err(3));
     assert_eq!(&*s, "aé~~~_ô!");
