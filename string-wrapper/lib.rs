@@ -5,6 +5,7 @@ use std::ops;
 use std::ptr;
 use std::str;
 use std::cmp;
+use std::hash;
 
 /// Like `String`, but with a fixed capacity and a generic backing bytes storage.
 ///
@@ -212,6 +213,13 @@ impl<T: Buffer> PartialOrd for StringWrapper<T> {
     }
 }
 
+impl<T: Buffer> hash::Hash for StringWrapper<T> {
+    fn hash<H: hash::Hasher>(&self, state: &mut H) {
+        self.len.hash(state);
+        self.buffer.as_ref()[..self.len].hash(state);
+    }
+}
+
 impl<T: Buffer + Eq> Ord for StringWrapper<T> {
     fn cmp(&self, other: &Self) -> cmp::Ordering {
         self.buffer.as_ref()[..self.len].cmp(&other.buffer.as_ref()[..self.len])
@@ -333,6 +341,24 @@ fn ord_only_to_length() {
     assert_eq!(s.cmp(&s2), cmp::Ordering::Equal);
 }
 
+#[cfg(test)]
+fn hash<T: hash::Hash>(t: &T) -> u64 {
+    // who knows why this isn't in std
+    let mut h = std::collections::hash_map::DefaultHasher::new();
+    t.hash(&mut h);
+    hash::Hasher::finish(&h)
+}
+
+#[test]
+fn hash_only_to_length() {
+    let mut s = StringWrapper::<[u8; 3]>::new(*b"000");
+    let mut s2 = StringWrapper::<[u8; 3]>::new(*b"111");
+    assert_eq!(hash(&s), hash(&s2));
+    s.push_str("a");
+    assert!(hash(&s) != hash(&s2));
+    s2.push_str("a");
+    assert_eq!(hash(&s), hash(&s2));
+}
 
 #[test]
 fn it_works() {
