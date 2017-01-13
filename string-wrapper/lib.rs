@@ -4,11 +4,12 @@ use std::mem::transmute;
 use std::ops;
 use std::ptr;
 use std::str;
+use std::cmp;
 
 /// Like `String`, but with a fixed capacity and a generic backing bytes storage.
 ///
 /// Use e.g. `StringWrapper<[u8; 4]>` to have a string without heap memory allocation.
-#[derive(Clone, Copy, Default)]
+#[derive(Eq, Clone, Copy, Default)]
 pub struct StringWrapper<T> where T: Buffer {
     len: usize,
     buffer: T,
@@ -169,7 +170,6 @@ fn copy_memory(src: &[u8], dst: &mut [u8]) {
     }
 }
 
-
 impl<T> ops::Deref for StringWrapper<T> where T: Buffer {
     type Target = str;
 
@@ -197,6 +197,24 @@ impl<T> fmt::Display for StringWrapper<T> where T: Buffer {
 impl<T> fmt::Debug for StringWrapper<T> where T: Buffer {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fmt::Debug::fmt(&**self, f)
+    }
+}
+
+impl<T: Buffer> PartialEq for StringWrapper<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.buffer.as_ref()[..self.len] == other.buffer.as_ref()[..self.len]
+    }
+}
+
+impl<T: Buffer> PartialOrd for StringWrapper<T> {
+    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl<T: Buffer + Eq> Ord for StringWrapper<T> {
+    fn cmp(&self, other: &Self) -> cmp::Ordering {
+        self.buffer.as_ref()[..self.len].cmp(&other.buffer.as_ref()[..self.len])
     }
 }
 
@@ -259,6 +277,60 @@ array_impl! {
     1024 * 1024 * 1024
     100 1_000 10_000 100_000 1_000_000
     10_000_000 100_000_000 1_000_000_000
+}
+
+
+#[test]
+fn traits() {
+    // A simple way to ensure that Eq is implemented for StringWrapper
+    #[derive(Eq, PartialEq, Ord, PartialOrd)]
+    struct Foo {
+        x: StringWrapper<[u8; 32]>,
+    }
+}
+
+#[test]
+fn eq() {
+    let mut s = StringWrapper::<[u8; 3]>::new(*b"000");
+    assert_eq!(s, s);
+    s.push_str("foo");
+    let mut s2 = StringWrapper::<[u8; 3]>::new(*b"000");
+    s2.push_str("foo");
+    assert_eq!(s, s2);
+
+    let mut s3 = StringWrapper::<[u8; 3]>::new(*b"000");
+    s3.push_str("bar");
+    assert!(s != s3);
+}
+
+#[test]
+fn eq_only_to_length() {
+    let a = StringWrapper::<[u8; 5]>::new(*b"aaaaa");
+    let b = StringWrapper::<[u8; 5]>::new(*b"bbbbb");
+    assert_eq!(a, b);
+}
+
+#[test]
+fn ord() {
+    let mut s = StringWrapper::<[u8; 3]>::new(*b"000");
+    let mut s2 = StringWrapper::<[u8; 3]>::new(*b"000");
+    s.push_str("a");
+    s2.push_str("b");
+    assert_eq!(s.partial_cmp(&s2), Some(cmp::Ordering::Less));
+    assert_eq!(s.cmp(&s2), cmp::Ordering::Less);
+}
+
+#[test]
+fn ord_only_to_length() {
+    let mut s = StringWrapper::<[u8; 3]>::new(*b"000");
+    let mut s2 = StringWrapper::<[u8; 3]>::new(*b"111");
+    assert_eq!(s.partial_cmp(&s2), Some(cmp::Ordering::Equal));
+    assert_eq!(s.cmp(&s2), cmp::Ordering::Equal);
+
+    s.push_str("aa");
+    s2.push_str("aa");
+    assert_eq!(s.partial_cmp(&s2), Some(cmp::Ordering::Equal));
+    assert_eq!(s.cmp(&s2), cmp::Ordering::Equal);
 }
 
 
@@ -329,4 +401,3 @@ fn it_works() {
     assert_eq!(s.capacity(), 10);
     assert_eq!(s.extra_capacity(), 0);
 }
-
