@@ -1,9 +1,18 @@
 RUST_CHANNEL ?= nightly
 
 CRATES = matches show text_writer triable return_if_ok
-ifeq "$(RUST_CHANNEL)" "nightly"
-    CRATES += zip_longest mod_path
+
+# FIXME: Make this unconditional when 1.8 hits the stable channel.
+# ref_filter_map uses Ref::map which is stable since 1.8
+ifneq "$(RUST_CHANNEL)" "stable"
+    CRATES += ref_filter_map
 endif
+
+ifeq "$(RUST_CHANNEL)" "nightly"
+    CRATES += zip_longest
+endif
+
+# Unmaintained: mod_path
 
 .PHONY: default
 default: test
