@@ -1,6 +1,6 @@
 RUST_CHANNEL ?= nightly
 
-CRATES = matches show text_writer triable return_if_ok string-wrapper
+CRATES = matches show text_writer triable return_if_ok
 
 # FIXME: Make this unconditional when 1.8 hits the stable channel.
 # ref_filter_map uses Ref::map which is stable since 1.8
