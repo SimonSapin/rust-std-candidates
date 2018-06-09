@@ -39,6 +39,41 @@ macro_rules! matches {
     }
 }
 
+/// A general version of Option::unwrap for all enum variants.
+///
+/// Syntax: `unwrap_match!(` *expression* `,` *pattern* `=>` *result* `)`
+///
+/// The macro evaluates to *result* if *pattern* matches, otherwise it panics.
+///
+/// # Examples
+///
+/// ```
+/// #[macro_use]
+/// extern crate matches;
+///
+/// pub enum Foo<T> {
+///     A,
+///     B(T),
+/// }
+///
+/// fn main() {
+///     let foo = Foo::B(4);
+///     let i = unwrap_match!(foo, Foo::B(i) => i);
+///     assert_eq!(i, 4);
+/// }
+/// ```
+#[macro_export]
+macro_rules! unwrap_match {
+    ($expression:expr, $($pattern:tt)+) => {
+        _matches_tt_as_expr_hack! {
+            match $expression {
+                $($pattern)+,
+                _ => panic!("pattern passed to unwrap_match! did not match"),
+            }
+        }
+    }
+}
+
 /// Work around "error: unexpected token: `an interpolated tt`", whatever that means.
 #[doc(hidden)]
 #[macro_export]
@@ -127,4 +162,30 @@ fn assert_matches_panics() {
         matches!(bar.as_bytes()[0], b'+' | b'-') &&
         matches!(bar.as_bytes()[1], b'0'...b'9')
     );
+}
+
+#[test]
+fn unwrap_match_works() {
+    #[allow(dead_code)]
+    enum Foo {
+        A(u32),
+        B(f32),
+    }
+
+    let foo = Foo::B(0.5);
+    let f = unwrap_match!(foo, Foo::B(f) => f);
+    assert_eq!(f, 0.5);
+}
+
+#[test]
+#[should_panic(expected = "pattern passed to unwrap_match! did not match")]
+fn unwrap_match_panics() {
+    #[allow(dead_code)]
+    enum Foo {
+        A(u32),
+        B(f32),
+    }
+
+    let foo = Foo::B(0.5);
+    let _i = unwrap_match!(foo, Foo::A(i) => i);
 }
