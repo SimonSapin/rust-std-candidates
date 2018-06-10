@@ -68,7 +68,7 @@ macro_rules! unwrap_match {
         _matches_tt_as_expr_hack! {
             match $expression {
                 $($pattern)+,
-                _ => panic!("pattern passed to unwrap_match! did not match"),
+                _ => panic!("pattern {} passed to unwrap_match! did not match", stringify!($($pattern)+)),
             }
         }
     }
@@ -178,7 +178,7 @@ fn unwrap_match_works() {
 }
 
 #[test]
-#[should_panic(expected = "pattern passed to unwrap_match! did not match")]
+#[should_panic(expected = "pattern Foo :: A ( i ) => i passed to unwrap_match! did not match")]
 fn unwrap_match_panics() {
     #[allow(dead_code)]
     enum Foo {
