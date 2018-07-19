@@ -27,7 +27,7 @@
 ///
 /// # fn main() { }
 /// ```
-#[macro_export]
+#[macro_export(local_inner_macros)]
 macro_rules! matches {
     ($expression:expr, $($pattern:tt)+) => {
         _matches_tt_as_expr_hack! {
@@ -41,7 +41,7 @@ macro_rules! matches {
 
 /// Work around "error: unexpected token: `an interpolated tt`", whatever that means.
 #[doc(hidden)]
-#[macro_export]
+#[macro_export(local_inner_macros)]
 macro_rules! _matches_tt_as_expr_hack {
     ($value:expr) => ($value)
 }
@@ -64,7 +64,7 @@ macro_rules! _matches_tt_as_expr_hack {
 ///     assert_matches!(data.get(1), Some(_));
 /// }
 /// ```
-#[macro_export]
+#[macro_export(local_inner_macros)]
 macro_rules! assert_matches {
     ($expression:expr, $($pattern:tt)+) => {
         _matches_tt_as_expr_hack! {
@@ -96,7 +96,7 @@ macro_rules! assert_matches {
 ///     debug_assert_matches!(data.get(1), Some(_));
 /// }
 /// ```
-#[macro_export]
+#[macro_export(local_inner_macros)]
 macro_rules! debug_assert_matches {
     ($($arg:tt)*) => (if cfg!(debug_assertions) { assert_matches!($($arg)*); })
 }
