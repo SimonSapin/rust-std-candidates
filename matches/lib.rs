@@ -27,7 +27,7 @@
 ///
 /// # fn main() { }
 /// ```
-#[macro_export(local_inner_macros)]
+#[macro_export]
 macro_rules! matches {
     ($expression:expr, $($pattern:tt)+) => {
         match $expression {
@@ -55,7 +55,7 @@ macro_rules! matches {
 ///     assert_matches!(data.get(1), Some(_));
 /// }
 /// ```
-#[macro_export(local_inner_macros)]
+#[macro_export]
 macro_rules! assert_matches {
     ($expression:expr, $($pattern:tt)+) => {
         match $expression {
@@ -85,9 +85,16 @@ macro_rules! assert_matches {
 ///     debug_assert_matches!(data.get(1), Some(_));
 /// }
 /// ```
-#[macro_export(local_inner_macros)]
+#[macro_export]
 macro_rules! debug_assert_matches {
-    ($($arg:tt)*) => (if cfg!(debug_assertions) { assert_matches!($($arg)*); })
+    ($expression:expr, $($pattern:tt)+) => {
+        if cfg!(debug_assertions) {
+            match $expression {
+                $($pattern)+ => (),
+                ref e => panic!("assertion failed: `{:?}` does not match `{}`", e, stringify!($($pattern)+)),
+            }
+        }
+    }
 }
 
 #[test]
