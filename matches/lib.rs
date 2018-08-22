@@ -30,20 +30,11 @@
 #[macro_export(local_inner_macros)]
 macro_rules! matches {
     ($expression:expr, $($pattern:tt)+) => {
-        _matches_tt_as_expr_hack! {
-            match $expression {
-                $($pattern)+ => true,
-                _ => false
-            }
+        match $expression {
+            $($pattern)+ => true,
+            _ => false
         }
     }
-}
-
-/// Work around "error: unexpected token: `an interpolated tt`", whatever that means.
-#[doc(hidden)]
-#[macro_export(local_inner_macros)]
-macro_rules! _matches_tt_as_expr_hack {
-    ($value:expr) => ($value)
 }
 
 /// Assert that an expression matches a refutable pattern.
@@ -67,11 +58,9 @@ macro_rules! _matches_tt_as_expr_hack {
 #[macro_export(local_inner_macros)]
 macro_rules! assert_matches {
     ($expression:expr, $($pattern:tt)+) => {
-        _matches_tt_as_expr_hack! {
-            match $expression {
-                $($pattern)+ => (),
-                ref e => panic!("assertion failed: `{:?}` does not match `{}`", e, stringify!($($pattern)+)),
-            }
+        match $expression {
+            $($pattern)+ => (),
+            ref e => panic!("assertion failed: `{:?}` does not match `{}`", e, stringify!($($pattern)+)),
         }
     }
 }
