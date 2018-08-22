@@ -106,7 +106,7 @@ pub enum EitherOrBoth<A, B> {
 fn test_iterator_size_hint() {
     use std::usize;
 
-    let c = 0i32..;
+    let c = std::iter::repeat(0);
     let v: &[_] = &[0i32, 1, 2, 3, 4, 5, 6, 7, 8, 9];
     let v2 = &[10i32, 11, 12];
     let vi = v.iter();
