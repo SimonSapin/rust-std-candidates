@@ -7,8 +7,7 @@
 /// # Examples
 ///
 /// ```
-/// #[macro_use]
-/// extern crate matches;
+/// use matches::matches;
 ///
 /// pub enum Foo<T> {
 ///     A,
@@ -37,9 +36,11 @@ macro_rules! matches {
     }
 }
 
-/// Assert that an expression matches a refutable pattern.
+/// Assert that an expression matches a refutable pattern. Optionally, you
+/// can add a follow-up block, which runs with the matched pattern if the
+/// assertion succeeded.
 ///
-/// Syntax: `assert_matches!(` *expression* `,` *pattern* `)`
+/// Syntax: `assert_matches!(` *expression* `,` *pattern (* `=>` *block )?* `)`
 ///
 /// Panic with a message that shows the expression if it does not match the
 /// pattern.
@@ -47,22 +48,25 @@ macro_rules! matches {
 /// # Examples
 ///
 /// ```
-/// #[macro_use]
-/// extern crate matches;
+/// use matches::assert_matches;
 ///
-/// fn main() {
-///     let data = [1, 2, 3];
-///     assert_matches!(data.get(1), Some(_));
-/// }
+/// let data = [1, 2, 3];
+/// assert_matches!(data.get(1), Some(_));
+///
+/// assert_matches!(data.get(1), Some(x) => {
+///     assert_eq!(x, &2);
+/// })
 /// ```
 #[macro_export]
 macro_rules! assert_matches {
-    ($expression:expr, $($pattern:tt)+) => {
+    ($expression:expr, $pattern:pat $(if $guard:expr)? $(=> $block:expr)?) => {
         match $expression {
-            $($pattern)+ => (),
-            ref e => panic!("assertion failed: `{:?}` does not match `{}`", e, stringify!($($pattern)+)),
+            $pattern $(if $guard)? => { $($block)? },
+            ref e => panic!("assertion failed: `value` does not match `pattern`
+   value: {:?},
+ pattern: {}", e, stringify!($pattern $(if $guard)?)),
         }
-    }
+    };
 }
 
 /// Assert that an expression matches a refutable pattern using debug assertions.
@@ -77,8 +81,7 @@ macro_rules! assert_matches {
 /// # Examples
 ///
 /// ```
-/// #[macro_use]
-/// extern crate matches;
+/// use matches::debug_assert_matches;
 ///
 /// fn main() {
 ///     let data = [1, 2, 3];
@@ -87,12 +90,9 @@ macro_rules! assert_matches {
 /// ```
 #[macro_export]
 macro_rules! debug_assert_matches {
-    ($expression:expr, $($pattern:tt)+) => {
+    ($expression:expr, $pattern:pat $(if $guard:expr)? $(=> $block:expr)?) => {
         if cfg!(debug_assertions) {
-            match $expression {
-                $($pattern)+ => (),
-                ref e => panic!("assertion failed: `{:?}` does not match `{}`", e, stringify!($($pattern)+)),
-            }
+            $crate::assert_matches!($expression, $pattern $(if $guard)? $(=> $block)?)
         }
     }
 }
@@ -102,7 +102,7 @@ fn matches_works() {
     let foo = Some("-12");
     assert!(matches!(foo, Some(bar) if
         matches!(bar.as_bytes()[0], b'+' | b'-') &&
-        matches!(bar.as_bytes()[1], b'0'...b'9')
+        matches!(bar.as_bytes()[1], b'0'..=b'9')
     ));
 }
 
@@ -111,16 +111,46 @@ fn assert_matches_works() {
     let foo = Some("-12");
     assert_matches!(foo, Some(bar) if
         matches!(bar.as_bytes()[0], b'+' | b'-') &&
-        matches!(bar.as_bytes()[1], b'0'...b'9')
+        matches!(bar.as_bytes()[1], b'0'..=b'9')
     );
 }
 
 #[test]
-#[should_panic(expected = "assertion failed: `Some(\"-AB\")` does not match ")]
+#[should_panic(expected = "assertion failed: `value` does not match `pattern`")]
 fn assert_matches_panics() {
     let foo = Some("-AB");
     assert_matches!(foo, Some(bar) if
         matches!(bar.as_bytes()[0], b'+' | b'-') &&
-        matches!(bar.as_bytes()[1], b'0'...b'9')
+        matches!(bar.as_bytes()[1], b'0'..=b'9')
     );
+}
+
+#[test]
+#[should_panic(expected = "assertion failed: `value` does not match `pattern`")]
+fn assert_matches_panics_on_mismatch() {
+    let foo: Result<&str, &str> = Ok("-AB");
+    assert_matches!(foo, Err(_));
+}
+
+#[test]
+fn assert_matches_block() {
+    let foo = Some(10);
+
+    assert_matches!(foo, Some(x) => {
+        assert_eq!(x, 10);
+    })
+}
+
+#[test]
+#[should_panic(expected = "assertion failed: x != 5")]
+fn assert_matches_block_fails() {
+    let foo = Some(10);
+
+    assert_matches!(foo, Some(x) => {
+        // Use a panic instead of assert because the specific error message
+        // of std::assert_eq!() might change in future releases
+        if x != 5 {
+            panic!("assertion failed: x != 5");
+        }
+    })
 }

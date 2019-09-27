@@ -6,6 +6,7 @@ license = "MIT"
 repository = "https://github.com/SimonSapin/rust-std-candidates"
 description = "A macro to evaluate, as a boolean, whether an expression matches a pattern."
 documentation = "https://docs.rs/matches/"
+edition = "2018"
 
 [lib]
 name = "matches"
