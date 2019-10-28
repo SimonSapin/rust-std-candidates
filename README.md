@@ -157,7 +157,7 @@ macro_rules! try {
 
 If we ignore [the `FromError` conversion](http://doc.rust-lang.org/std/error/#the-fromerror-trait),
 `return_if_ok!` and `try!` (which could be named `return_if_err!`)
-are [dual][https://en.wikipedia.org/wiki/Duality_%28mathematics%29]
+are [dual](https://en.wikipedia.org/wiki/Duality_%28mathematics%29)
 in the same way that [`Result::or_else`](http://doc.rust-lang.org/std/result/enum.Result.html#method.or_else)
 and  [`Result::and_then`](http://doc.rust-lang.org/std/result/enum.Result.html#method.and_then) are dual,
 and that [`||` and `&&` are dual](https://en.wikipedia.org/wiki/De_Morgan%27s_laws).
