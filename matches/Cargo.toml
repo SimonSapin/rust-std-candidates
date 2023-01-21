@@ -1,7 +1,6 @@
 [package]
 name = "matches"
-version = "0.1.9"
-authors = ["Simon Sapin <simon.sapin@exyr.org>"]
+version = "0.1.10"
 license = "MIT"
 repository = "https://github.com/SimonSapin/rust-std-candidates"
 description = "A macro to evaluate, as a boolean, whether an expression matches a pattern."
